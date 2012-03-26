@@ -1,0 +1,3 @@
+PIL>=1.1.6
+colormath>=1.0.8
+numpy>=1.6.1
