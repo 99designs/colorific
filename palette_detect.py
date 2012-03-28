@@ -32,6 +32,7 @@ MIN_DISTANCE = 4.0      # min distance to consider two colors different
 MIN_PROMINENCE = 0.01   # ignore if less than this proportion of image
 MIN_SATURATION = 0.05   # ignore if not saturated enough
 MAX_COLORS = 5          # keep only this many colors
+BACKGROUND_PROMINENCE = 0.5     # level of prominence indicating a bg color
 
 # multiprocessing parameters
 BLOCK_SIZE = 10
@@ -155,7 +156,14 @@ def extract_colors(filename_or_img, min_saturation=MIN_SATURATION,
     colors, bg_color = detect_background(im, colors, to_canonical)
 
     # keep any color which meets the minimum saturation
-    colors = [c for c in colors if meets_min_saturation(c, min_saturation)]
+    sat_colors = [c for c in colors if meets_min_saturation(c, min_saturation)]
+    if bg_color and not meets_min_saturation(bg_color, min_saturation):
+        bg_color = None
+    if sat_colors:
+        colors = sat_colors
+    else:
+        # keep at least one color
+        colors = colors[:1]
 
     # keep any color within 10% of the majority color
     colors = [c for c in colors if c.prominence >= colors[0].prominence
@@ -169,7 +177,7 @@ def norm_color(c):
 
 def detect_background(im, colors, to_canonical):
     # more then half the image means background
-    if colors[0].prominence >= 0.4:
+    if colors[0].prominence >= BACKGROUND_PROMINENCE:
         return colors[1:], colors[0]
 
     # work out the background color
@@ -236,7 +244,7 @@ each containing hex color values."""
             type='float', default=MIN_DISTANCE)
     parser.add_option('--min-prominence', action='store',
             dest='min_prominence', type='float', default=MIN_PROMINENCE,
-            help='The minimum proportion of pixels needed to keep a color.') 
+            help='The minimum proportion of pixels needed to keep a color.')
 
     return parser
 
