@@ -13,36 +13,44 @@ import sys
 import optparse
 from collections import Counter, namedtuple
 from operator import itemgetter, mul, attrgetter
+import multiprocessing
+import colorsys
 
 import Image as Im
+import ImageChops
 from colormath.color_objects import RGBColor
-
-import multiprocessing
 
 Color = namedtuple('Color', ['value', 'prominence'])
 Palette = namedtuple('Palette', 'colors bgcolor')
 
-N_COLORS = 32 # start with an adaptive palette of this size
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
-THRESHOLD_DIST = 2.0 # max delta-e to merge two colors
-SENTINEL = 'no more to process'
+
+# algorithm tuning
+N_COLORS = 32           # start with an adaptive palette of this size
+MIN_DISTANCE = 4.0      # min distance to consider two colors different
+MIN_PROMINENCE = 0.01   # ignore if less than this proportion of image
+MIN_SATURATION = 0.05   # ignore if not saturated enough
+MAX_COLORS = 5          # keep only this many colors
+
+# multiprocessing parameters
 BLOCK_SIZE = 10
 N_PROCESSES = 1
+SENTINEL = 'no more to process'
 
-def color_stream_st(istream=sys.stdin):
+def color_stream_st(istream=sys.stdin, **kwargs):
     "Read filenames from the input stream and detect their palette."
     for line in istream:
         filename = line.strip()
         try:
-            palette = extract_colors(filename)
+            palette = extract_colors(filename, **kwargs)
         except Exception, e:
             print >> sys.stderr, filename, e
             continue
 
         print_colors(filename, palette)
 
-def color_stream_mt(istream=sys.stdin, n=N_PROCESSES):
+def color_stream_mt(istream=sys.stdin, n=N_PROCESSES, **kwargs):
     """
     Read filenames from the input stream and detect their palette using
     multiple processes.
@@ -50,8 +58,8 @@ def color_stream_mt(istream=sys.stdin, n=N_PROCESSES):
     queue = multiprocessing.Queue(1000)
     lock = multiprocessing.Lock()
 
-    pool = [multiprocessing.Process(target=color_process, args=(queue, lock))
-            for i in xrange(n)]
+    pool = [multiprocessing.Process(target=color_process, args=(queue, lock),
+            kwargs=kwargs) for i in xrange(n)]
     for p in pool:
         p.start()
 
@@ -99,7 +107,9 @@ def hex_to_rgb(color):
     assert color.startswith('#') and len(color) == 7
     return (int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16))
 
-def extract_colors(filename_or_img):
+def extract_colors(filename_or_img, min_saturation=MIN_SATURATION,
+        min_distance=MIN_DISTANCE, max_colors=MAX_COLORS,
+        min_prominence=MIN_PROMINENCE):
     """
     Determine what the major colors are in the given image.
     """
@@ -111,6 +121,7 @@ def extract_colors(filename_or_img):
     # get point color count
     if im.mode != 'RGB':
         im = im.convert('RGB')
+    im = autocrop(im, WHITE) # assume white box
     im = im.convert('P', palette=Im.ADAPTIVE, colors=N_COLORS).convert('RGB')
     data = im.getdata()
     dist = Counter(data)
@@ -126,7 +137,7 @@ def extract_colors(filename_or_img):
             aggregated[c] += n
         else:
             d, nearest = min((distance(c, alt), alt) for alt in aggregated)
-            if d < THRESHOLD_DIST:
+            if d < min_distance:
                 # nearby match
                 aggregated[nearest] += n
                 to_canonical[c] = nearest
@@ -141,11 +152,33 @@ def extract_colors(filename_or_img):
             key=attrgetter('prominence'),
             reverse=True)
 
+    colors, bg_color = detect_background(im, colors, to_canonical)
+
+    # keep any color which meets the minimum saturation
+    colors = [c for c in colors if meets_min_saturation(c, min_saturation)]
+
+    # keep any color within 10% of the majority color
+    colors = [c for c in colors if c.prominence >= colors[0].prominence
+            * min_prominence][:max_colors]
+
+    return Palette(colors, bg_color)
+
+def norm_color(c):
+    r, g, b = c
+    return (r/255.0, g/255.0, b/255.0)
+
+def detect_background(im, colors, to_canonical):
+    # more then half the image means background
+    if colors[0].prominence >= 0.4:
+        return colors[1:], colors[0]
+
     # work out the background color
-    corners = [(0, 0), (0, im.size[1]-1), (im.size[0]-1, 0),
-            (im.size[0]-1, im.size[1]-1)]
-    corner_dist = Counter(im.getpixel(corner) for corner in corners)
-    (majority_col, majority_count), = corner_dist.most_common(1)
+    w, h = im.size
+    points = [(0, 0), (0, h/2), (0, h-1), (w/2, h-1), (w-1, h-1),
+            (w-1, h/2), (w-1, 0), (w/2, 0)]
+    edge_dist = Counter(im.getpixel(p) for p in points)
+
+    (majority_col, majority_count), = edge_dist.most_common(1)
     if majority_count >= 3:
         # we have a background color
         canonical_bg = to_canonical[majority_col]
@@ -155,11 +188,7 @@ def extract_colors(filename_or_img):
         # no background color
         bg_color = None
 
-    # keep any color within 10% of the majority color
-    colors = [c for c in colors if c.prominence >= colors[0].prominence
-            / 5.0][:5]
-
-    return Palette(colors, bg_color)
+    return colors, bg_color
 
 def print_colors(filename, palette):
     print '%s\t%s\t%s' % (
@@ -168,6 +197,21 @@ def print_colors(filename, palette):
             palette.bgcolor and rgb_to_hex(palette.bgcolor.value) or '',
         )
     sys.stdout.flush()
+
+def meets_min_saturation(c, threshold):
+    return colorsys.rgb_to_hsv(*norm_color(c.value))[1] > threshold
+
+def autocrop(im, bgcolor):
+    "Crop away a border of the given background color."
+    if im.mode != "RGB":
+        im = im.convert("RGB")
+    bg = Im.new("RGB", im.size, bgcolor)
+    diff = ImageChops.difference(im, bg)
+    bbox = diff.getbbox()
+    if bbox:
+        return im.crop(bbox)
+
+    return im # no contents, don't crop to nothing
 
 #----------------------------------------------------------------------------#
 
@@ -181,6 +225,18 @@ each containing hex color values."""
     parser = optparse.OptionParser(usage)
     parser.add_option('-p', '--parallel', action='store', dest='n_processes',
             type='int', default=N_PROCESSES)
+    parser.add_option('--min-saturation', action='store',
+            dest='min_saturation', default=MIN_SATURATION, type='float',
+            help='Only keep colors which meet this saturation')
+    parser.add_option('--max-colors', action='store', dest='max_colors',
+            type='int', default=MAX_COLORS,
+            help='The maximum number of colors to output per palette.')
+    parser.add_option('--min-distance', action='store', dest='min_distance',
+            help='The minimum distance colors must have to stay separate.',
+            type='float', default=MIN_DISTANCE)
+    parser.add_option('--min-prominence', action='store',
+            dest='min_prominence', type='float', default=MIN_PROMINENCE,
+            help='The minimum proportion of pixels needed to keep a color.') 
 
     return parser
 
@@ -196,7 +252,12 @@ def main():
     if options.n_processes > 1:
         color_stream_mt(n=options.n_processes)
     else:
-        color_stream_st()
+        color_stream_st(
+                min_saturation=options.min_saturation,
+                min_prominence=options.min_prominence,
+                min_distance=options.min_distance,
+                max_colors=options.max_colors,
+            )
 
 #----------------------------------------------------------------------------#
 
