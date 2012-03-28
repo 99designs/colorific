@@ -117,6 +117,7 @@ def extract_colors(filename_or_img):
     n_pixels = mul(*im.size)
 
     # aggregate colors
+    to_canonical = {WHITE: WHITE, BLACK: BLACK}
     aggregated = Counter({WHITE: 0, BLACK: 0})
     sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
     for c, n in sorted_cols:
@@ -128,9 +129,11 @@ def extract_colors(filename_or_img):
             if d < THRESHOLD_DIST:
                 # nearby match
                 aggregated[nearest] += n
+                to_canonical[c] = nearest
             else:
                 # no nearby match
                 aggregated[c] = n
+                to_canonical[c] = c
 
     # order by prominence
     colors = sorted((Color(c, n / float(n_pixels)) \
@@ -145,8 +148,9 @@ def extract_colors(filename_or_img):
     (majority_col, majority_count), = corner_dist.most_common(1)
     if majority_count >= 3:
         # we have a background color
-        bg_color, = [c for c in colors if c.value == majority_col]
-        colors = [c for c in colors if c.value != majority_col]
+        canonical_bg = to_canonical[majority_col]
+        bg_color, = [c for c in colors if c.value == canonical_bg]
+        colors = [c for c in colors if c.value != canonical_bg]
     else:
         # no background color
         bg_color = None
