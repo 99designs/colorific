@@ -21,11 +21,16 @@ setup(
     author='Lars Yencken',
     author_email='lars@yencken.org',
     url='http://bitbucket.org/larsyencken/palette-detect',
-    scripts=['palette_detect'],
+    py_modules=['palette_detect'],
     install_requires=[
             'PIL>=1.1.6',
             'colormath>=1.0.8',
             'numpy>=1.6.1',
         ],
     license='ISC',
+    entry_points={
+        'console_scripts': [
+                'palette_detect = palette_detect:main',
+            ],
+        },
 )

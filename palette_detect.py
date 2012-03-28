@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 #
 #  palette.py
-#  palette-py
+#  palette_detect
 #
 
 """
@@ -172,7 +172,8 @@ each containing hex color values."""
 
     return parser
 
-def main(argv):
+def main():
+    argv = sys.argv[1:]
     parser = _create_option_parser()
     (options, args) = parser.parse_args(argv)
 
@@ -188,5 +189,5 @@ def main(argv):
 #----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
-    main(sys.argv[1:])
+    main()
 
