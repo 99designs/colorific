@@ -20,6 +20,7 @@ from colormath.color_objects import RGBColor
 import multiprocessing
 
 Color = namedtuple('Color', ['value', 'prominence'])
+Palette = namedtuple('Palette', 'colors bgcolor')
 
 N_COLORS = 32 # start with an adaptive palette of this size
 WHITE = (255, 255, 255)
@@ -34,12 +35,12 @@ def color_stream_st(istream=sys.stdin):
     for line in istream:
         filename = line.strip()
         try:
-            colors, bg_color = extract_colors(filename)
+            palette = extract_colors(filename)
         except Exception, e:
             print >> sys.stderr, filename, e
             continue
 
-        print_colors(filename, colors, bg_color)
+        print_colors(filename, palette)
 
 def color_stream_mt(istream=sys.stdin, n=N_PROCESSES):
     """
@@ -78,12 +79,12 @@ def color_process(queue, lock):
 
         for filename in block:
             try:
-                colors, bg_color = extract_colors(filename)
+                palette = extract_colors(filename)
             except:
                 continue
             lock.acquire()
             try:
-                print_colors(filename, colors, bg_color)
+                print_colors(filename, palette)
             finally:
                 lock.release()
 
@@ -94,12 +95,16 @@ def distance(c1, c2):
 def rgb_to_hex(color):
     return '#%.02x%.02x%.02x' % color
 
-def extract_colors(filename):
+def extract_colors(filename_or_img):
     """
     Determine what the major colors are in the given image.
     """
+    if Im.isImageType(filename_or_img):
+        im = filename_or_img
+    else:
+        im = Im.open(filename_or_img)
+
     # get point color count
-    im = Im.open(filename)
     if im.mode != 'RGB':
         im = im.convert('RGB')
     im = im.convert('P', palette=Im.ADAPTIVE, colors=N_COLORS).convert('RGB')
@@ -146,14 +151,13 @@ def extract_colors(filename):
     colors = [c for c in colors if c.prominence >= colors[0].prominence
             / 5.0][:5]
 
-    return colors, bg_color
+    return Palette(colors, bg_color)
 
-def print_colors(filename, colors, bg_color):
-    colors, bg_color = extract_colors(filename)
+def print_colors(filename, palette):
     print '%s\t%s\t%s' % (
             filename,
-            ','.join(rgb_to_hex(c.value) for c in colors),
-            bg_color and rgb_to_hex(bg_color.value) or '',
+            ','.join(rgb_to_hex(c.value) for c in palette.colors),
+            palette.bgcolor and rgb_to_hex(palette.bgcolor.value) or '',
         )
     sys.stdout.flush()
 
