@@ -1,15 +1,12 @@
-==============
-pallete_detect
-==============
+# pallete_detect
 
 Image palette detection in Python modelled after Paul Annesley's color
 detector in PHP. `palette_detect` determines what the most important colors
 used in your image are, and if one of them is a background color.
 
-by Dennis Hotson & Lars Yencken
+_by Dennis Hotson & Lars Yencken_
 
-Usage
-=====
+## Usage
 
 `palette_detect` is meant to run in a streaming manner. You can run it on a single image by echo'ing in the image::
 
@@ -22,12 +19,30 @@ detected background color.
 
 To run on an entire directory tree of images::
 
-  $ find . -name '*.jpg' | palette_detect
+    $ find . -name '*.jpg' | palette_detect
 
 `palette_detect` has an experimental multiprocessing mode, accessed by the `-n`
 argument. For example, to run the same example using 8 processes::
 
-    $ find . -name '*.jpg' | palette_detect -n 8
+    $ find . -name '*.jpg' | palette_detect -p 8
 
 You can also get usage information by running `palette_detect --help`.
 
+## Example
+
+Here's a concrete example of use. This is the NASA Ares logo:
+
+![NASA Ares Logo](http://media.quietlyamused.org.s3.amazonaws.com/palette/500px-NASA-Ares-logo.svg.png)
+
+Let's run palette detection on it:
+
+    $ echo 500px-NASA-Ares-logo.svg.png | palette_detect
+    500px-NASA-Ares-logo.svg.png  #0065b9,#bbd6ec,#ff0000
+
+These correspond to the colors:
+
+<div>
+<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #0065b9;">&nbsp;</div>
+<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #bbd6ec;">&nbsp;</div>
+<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #ff0000;">&nbsp;</div>
+</div>
