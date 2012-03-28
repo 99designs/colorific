@@ -95,6 +95,10 @@ def distance(c1, c2):
 def rgb_to_hex(color):
     return '#%.02x%.02x%.02x' % color
 
+def hex_to_rgb(color):
+    assert color.startswith('#') and len(color) == 7
+    return (int(color[1:3], 16), int(color[3:5], 16), int(color[5:7], 16))
+
 def extract_colors(filename_or_img):
     """
     Determine what the major colors are in the given image.
