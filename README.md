@@ -41,8 +41,8 @@ Let's run palette detection on it:
 
 These correspond to the colors:
 
-<div>
-<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #0065b9;">&nbsp;</div>
-<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #bbd6ec;">&nbsp;</div>
-<div style="display: inline-block; margin: 2px; width: 40px; height: 40px; background: #ff0000;">&nbsp;</div>
-</div>
+![Ares palette](http://media.quietlyamused.org.s3.amazonaws.com/palette/ares-palette.png)
+
+Note that black and white have been stripped away, and minor colors introduced
+through antialiasing are not present.
+
