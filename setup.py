@@ -15,7 +15,7 @@ readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 
 setup(
     name='palette_detect',
-    version='0.1.0',
+    version='0.2.0',
     description='Palette detection from images.',
     long_description=open(readme).read(),
     author='Lars Yencken',
