@@ -11,7 +11,7 @@ Package information for colorific.
 import os
 from setuptools import setup
 
-readme = os.path.join(os.path.dirname(__file__), 'README.rst')
+readme = os.path.join(os.path.dirname(__file__), 'README.md')
 
 setup(
     name='colorific',
