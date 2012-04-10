@@ -1,13 +1,13 @@
 # -*- coding: utf-8 -*-
 #
-#  test_palette_detect.py
+#  test_colorific.py
 #  palette-detect
 #
 
 import unittest
 import itertools
 
-import palette_detect
+import colorific
 
 CORE_COLORS = [
         '#000000', # black
@@ -29,11 +29,11 @@ class ConversionTest(unittest.TestCase):
 
     def test_hex_to_rgb(self):
         for rgb, hexval in self.pairs:
-            self.assertEqual(palette_detect.hex_to_rgb(hexval), rgb)
+            self.assertEqual(colorific.hex_to_rgb(hexval), rgb)
 
     def test_rgb_to_hex(self):
         for rgb, hexval in self.pairs:
-            self.assertEqual(palette_detect.rgb_to_hex(rgb), hexval)
+            self.assertEqual(colorific.rgb_to_hex(rgb), hexval)
 
 class VisualDistanceTest(unittest.TestCase):
     def test_core_colors(self):
@@ -52,13 +52,13 @@ class VisualDistanceTest(unittest.TestCase):
             assert self.similar(c1, c2)
 
     def distance(self, c1, c2):
-        return palette_detect.distance(
-                palette_detect.hex_to_rgb(c1),
-                palette_detect.hex_to_rgb(c2),
+        return colorific.distance(
+                colorific.hex_to_rgb(c1),
+                colorific.hex_to_rgb(c2),
             )
 
     def similar(self, c1, c2):
-        return self.distance(c1, c2) < palette_detect.THRESHOLD_DIST
+        return self.distance(c1, c2) < colorific.MIN_DISTANCE
 
 def suite():
     return unittest.TestSuite((
