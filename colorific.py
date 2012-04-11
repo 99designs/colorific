@@ -27,8 +27,8 @@ WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
 # algorithm tuning
-N_COLORS = 32           # start with an adaptive palette of this size
-MIN_DISTANCE = 4.0      # min distance to consider two colors different
+N_QUANTIZED = 100       # start with an adaptive palette of this size
+MIN_DISTANCE = 10.0     # min distance to consider two colors different
 MIN_PROMINENCE = 0.01   # ignore if less than this proportion of image
 MIN_SATURATION = 0.05   # ignore if not saturated enough
 MAX_COLORS = 5          # keep only this many colors
@@ -110,7 +110,7 @@ def hex_to_rgb(color):
 
 def extract_colors(filename_or_img, min_saturation=MIN_SATURATION,
         min_distance=MIN_DISTANCE, max_colors=MAX_COLORS,
-        min_prominence=MIN_PROMINENCE):
+        min_prominence=MIN_PROMINENCE, n_quantized=N_QUANTIZED):
     """
     Determine what the major colors are in the given image.
     """
@@ -123,7 +123,8 @@ def extract_colors(filename_or_img, min_saturation=MIN_SATURATION,
     if im.mode != 'RGB':
         im = im.convert('RGB')
     im = autocrop(im, WHITE) # assume white box
-    im = im.convert('P', palette=Im.ADAPTIVE, colors=N_COLORS).convert('RGB')
+    im = im.convert('P', palette=Im.ADAPTIVE, colors=n_quantized,
+            ).convert('RGB')
     data = im.getdata()
     dist = Counter(data)
     n_pixels = mul(*im.size)
@@ -245,6 +246,9 @@ each containing hex color values."""
     parser.add_option('--min-prominence', action='store',
             dest='min_prominence', type='float', default=MIN_PROMINENCE,
             help='The minimum proportion of pixels needed to keep a color.')
+    parser.add_option('--n-quantized', action='store',
+            dest='n_quantized', type='int', default=N_QUANTIZED,
+            help='Speed up by reducing the number in the quantizing step.')
 
     return parser
 
@@ -258,6 +262,7 @@ def main():
         sys.exit(1)
 
     if options.n_processes > 1:
+        # XXX add all the knobs we can tune
         color_stream_mt(n=options.n_processes)
     else:
         color_stream_st(
@@ -265,6 +270,7 @@ def main():
                 min_prominence=options.min_prominence,
                 min_distance=options.min_distance,
                 max_colors=options.max_colors,
+                n_quantized=options.n_quantized,
             )
 
 #----------------------------------------------------------------------------#
