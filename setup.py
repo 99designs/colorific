@@ -8,6 +8,16 @@
 Package information for colorific.
 """
 
+import sys
+
+# check for the supported Python version
+version = tuple(sys.version_info[:2])
+if version != (2, 7):
+    sys.stderr.write('colorific requires Python 2.7 (you have %d.%d)\n' %\
+            version)
+    sys.stderr.flush()
+    sys.exit(1)
+
 import os
 from setuptools import setup
 
