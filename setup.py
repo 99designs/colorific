@@ -20,7 +20,7 @@ setup(
     long_description=open(readme).read(),
     author='Lars Yencken',
     author_email='lars@yencken.org',
-    url='http://bitbucket.org/larsyencken/palette-detect',
+    url='http://github.com/99designs/colorific',
     py_modules=['colorific'],
     install_requires=[
             'PIL>=1.1.6',
