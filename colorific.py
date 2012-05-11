@@ -16,8 +16,8 @@ from operator import itemgetter, mul, attrgetter
 import multiprocessing
 import colorsys
 
-import Image as Im
-import ImageChops
+from PIL import Image as Im
+from PIL import ImageChops
 from colormath.color_objects import RGBColor
 
 Color = namedtuple('Color', ['value', 'prominence'])
@@ -258,7 +258,19 @@ def main():
     (options, args) = parser.parse_args(argv)
 
     if args:
-        parser.print_help()
+        # image filenames were provided as arguments
+        for filename in args:
+            try:
+                palette = extract_colors(filename,
+                                min_saturation=options.min_saturation,
+                                min_prominence=options.min_prominence,
+                                min_distance=options.min_distance,
+                                max_colors=options.max_colors,
+                                n_quantized=options.n_quantized)
+            except Exception, e:
+                print >> sys.stderr, filename, e
+                continue
+            print_colors(filename, palette)
         sys.exit(1)
 
     if options.n_processes > 1:
