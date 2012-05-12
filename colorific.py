@@ -266,7 +266,8 @@ each containing hex color values."""
             dest='n_quantized', type='int', default=N_QUANTIZED,
             help='Speed up by reducing the number in the quantizing step.')
     parser.add_option('-o', action='store_true',
-                      dest='save_palette', default=False)
+            dest='save_palette', default=False,
+            help='Output the palette as an image file')
 
     return parser
 
