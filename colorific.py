@@ -39,7 +39,7 @@ BLOCK_SIZE = 10
 N_PROCESSES = 1
 SENTINEL = 'no more to process'
 
-def color_stream_st(istream=sys.stdin, **kwargs):
+def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
     "Read filenames from the input stream and detect their palette."
     for line in istream:
         filename = line.strip()
@@ -50,7 +50,7 @@ def color_stream_st(istream=sys.stdin, **kwargs):
             continue
 
         print_colors(filename, palette)
-        if kwargs['save_palette']:
+        if save_palette:
             save_palette_as_image(filename, palette)
 
 def color_stream_mt(istream=sys.stdin, n=N_PROCESSES, **kwargs):
