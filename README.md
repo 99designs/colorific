@@ -8,7 +8,7 @@ _by Dennis Hotson & Lars Yencken_
 
 ## Usage
 
-`colorific` is meant to run in a streaming manner. You can run it on a single image by echo'ing in the image::
+`colorific` is meant to run in a streaming manner. You can run it on a single image by echo'ing in the image:
 
     $ echo myimage.png | colorific
     myimage.png #3e453f,#2ea3b7,#bee6ea,#51544c,#373d38 #ffffff
@@ -20,6 +20,11 @@ detected background color.
 To run on an entire directory tree of images::
 
     $ find . -name '*.jpg' | colorific
+
+For a small amount of images, `colorific` can also be invoked with the image file names provided as arguments:
+
+    $ colorific myimage.png
+    myimage.png #3e453f,#2ea3b7,#bee6ea,#51544c,#373d38 #ffffff
 
 `colorific` has an experimental multiprocessing mode, accessed by the `-n`
 argument. For example, to run the same example using 8 processes::

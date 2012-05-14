@@ -16,8 +16,8 @@ from operator import itemgetter, mul, attrgetter
 import multiprocessing
 import colorsys
 
-import Image as Im
-import ImageChops
+from PIL import Image as Im
+from PIL import ImageChops, ImageDraw
 from colormath.color_objects import RGBColor
 
 Color = namedtuple('Color', ['value', 'prominence'])
@@ -39,7 +39,7 @@ BLOCK_SIZE = 10
 N_PROCESSES = 1
 SENTINEL = 'no more to process'
 
-def color_stream_st(istream=sys.stdin, **kwargs):
+def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
     "Read filenames from the input stream and detect their palette."
     for line in istream:
         filename = line.strip()
@@ -50,6 +50,8 @@ def color_stream_st(istream=sys.stdin, **kwargs):
             continue
 
         print_colors(filename, palette)
+        if save_palette:
+            save_palette_as_image(filename, palette)
 
 def color_stream_mt(istream=sys.stdin, n=N_PROCESSES, **kwargs):
     """
@@ -207,6 +209,20 @@ def print_colors(filename, palette):
         )
     sys.stdout.flush()
 
+def save_palette_as_image(filename, palette):
+    "Save palette as a PNG with labeled, colored blocks"
+    output_filename = '%s_palette.png' % filename[:filename.rfind('.')]
+    size = (80 * len(palette.colors), 80)
+    im = Im.new('RGB', size)
+    draw = ImageDraw.Draw(im)
+    for i, c in enumerate(palette.colors):
+        (x1, y1) = (i * 80, 0)
+        (x2, y2) = ((i + 1) * 80 - 1, 79)
+        draw.rectangle([(x1, y1), (x2, y2)], fill=c.value)
+        draw.text((x1 + 4, y1 + 4), rgb_to_hex(c.value), (90, 90, 90))
+        draw.text((x1 + 3, y1 + 3), rgb_to_hex(c.value))
+    im.save(output_filename, "PNG")
+
 def meets_min_saturation(c, threshold):
     return colorsys.rgb_to_hsv(*norm_color(c.value))[1] > threshold
 
@@ -249,6 +265,9 @@ each containing hex color values."""
     parser.add_option('--n-quantized', action='store',
             dest='n_quantized', type='int', default=N_QUANTIZED,
             help='Speed up by reducing the number in the quantizing step.')
+    parser.add_option('-o', action='store_true',
+            dest='save_palette', default=False,
+            help='Output the palette as an image file')
 
     return parser
 
@@ -258,7 +277,21 @@ def main():
     (options, args) = parser.parse_args(argv)
 
     if args:
-        parser.print_help()
+        # image filenames were provided as arguments
+        for filename in args:
+            try:
+                palette = extract_colors(filename,
+                                min_saturation=options.min_saturation,
+                                min_prominence=options.min_prominence,
+                                min_distance=options.min_distance,
+                                max_colors=options.max_colors,
+                                n_quantized=options.n_quantized)
+            except Exception, e:
+                print >> sys.stderr, filename, e
+                continue
+            print_colors(filename, palette)
+            if options.save_palette:
+                save_palette_as_image(filename, palette)
         sys.exit(1)
 
     if options.n_processes > 1:
@@ -271,6 +304,7 @@ def main():
                 min_distance=options.min_distance,
                 max_colors=options.max_colors,
                 n_quantized=options.n_quantized,
+                save_palette=options.save_palette
             )
 
 #----------------------------------------------------------------------------#
