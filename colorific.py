@@ -252,19 +252,21 @@ each containing hex color values."""
             type='int', default=N_PROCESSES)
     parser.add_option('--min-saturation', action='store',
             dest='min_saturation', default=MIN_SATURATION, type='float',
-            help='Only keep colors which meet this saturation')
+            help='Only keep colors which meet this saturation [%.02f]' %
+                    MIN_SATURATION)
     parser.add_option('--max-colors', action='store', dest='max_colors',
             type='int', default=MAX_COLORS,
-            help='The maximum number of colors to output per palette.')
+            help='The maximum number of colors to output per palette [%d]' %
+                    MAX_COLORS)
     parser.add_option('--min-distance', action='store', dest='min_distance',
-            help='The minimum distance colors must have to stay separate.',
-            type='float', default=MIN_DISTANCE)
+            type='float', default=MIN_DISTANCE,
+            help='The minimum distance colors must have to stay separate [%.02f]' % MIN_DISTANCE)
     parser.add_option('--min-prominence', action='store',
             dest='min_prominence', type='float', default=MIN_PROMINENCE,
-            help='The minimum proportion of pixels needed to keep a color.')
+            help='The minimum proportion of pixels needed to keep a color [%.02f]' % MIN_PROMINENCE)
     parser.add_option('--n-quantized', action='store',
             dest='n_quantized', type='int', default=N_QUANTIZED,
-            help='Speed up by reducing the number in the quantizing step.')
+            help='Speed up by reducing the number in the quantizing step [%d]' % N_QUANTIZED)
     parser.add_option('-o', action='store_true',
             dest='save_palette', default=False,
             help='Output the palette as an image file')
