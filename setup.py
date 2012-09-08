@@ -33,9 +33,12 @@ setup(
     url='http://github.com/99designs/colorific',
     py_modules=['colorific'],
     install_requires=[
-            'PIL>=1.1.6',
+            'Pillow==1.7.8',
             'colormath>=1.0.8',
             'numpy>=1.6.1',
+        ],
+    dependency_links=[
+            'http://github.com/larsyencken/Pillow/tarball/master#egg=Pillow-1.7.8',
         ],
     license='ISC',
     entry_points={
