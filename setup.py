@@ -25,7 +25,7 @@ readme = os.path.join(os.path.dirname(__file__), 'README.md')
 
 setup(
     name='colorific',
-    version='0.2.0',
+    version='0.2.1',
     description='Automatic color palette detection',
     long_description=open(readme).read(),
     author='Lars Yencken',
