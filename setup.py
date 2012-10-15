@@ -13,7 +13,7 @@ import sys
 # check for the supported Python version
 version = tuple(sys.version_info[:2])
 if version != (2, 7):
-    sys.stderr.write('colorific requires Python 2.7 (you have %d.%d)\n' %\
+    sys.stderr.write('colorific requires Python 2.7 (you have %d.%d)\n' %
             version)
     sys.stderr.flush()
     sys.exit(1)
@@ -38,7 +38,7 @@ setup(
             'numpy>=1.6.1',
         ],
     dependency_links=[
-            'http://github.com/larsyencken/Pillow/tarball/master#egg=Pillow-1.7.8',
+            'http://github.com/python-imaging/Pillow/tarball/master#egg=Pillow-1.7.8',
         ],
     license='ISC',
     entry_points={
