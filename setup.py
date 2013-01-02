@@ -37,9 +37,6 @@ setup(
             'colormath>=1.0.8',
             'numpy>=1.6.1',
         ],
-    dependency_links=[
-            'http://github.com/python-imaging/Pillow/tarball/master#egg=Pillow-1.7.8',
-        ],
     license='ISC',
     entry_points={
         'console_scripts': [
