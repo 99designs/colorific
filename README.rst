@@ -8,7 +8,7 @@ are, and if one of them is a background color.
 *by Dennis Hotson & Lars Yencken*
 
 Installation
-============
+------------
 
 The easiest way to install colorific is with Python's pip and virtualenv::
 
@@ -18,7 +18,7 @@ The easiest way to install colorific is with Python's pip and virtualenv::
 You can then run colorific from ``./colorific-sandbox/bin/colorific``.
 
 Usage
-=====
+-----
 
 colorific is meant to run in a streaming manner. You can run it on a single image by echo'ing in the image::
 
@@ -43,7 +43,7 @@ You can use an experimental multiprocessing mode with the `-n` argument. For exa
 You can also get usage information by running ``colorific --help``.
 
 Example
-=======
+-------
 
 Here's a concrete example of use. This is the NASA Ares logo:
 
@@ -62,7 +62,7 @@ Note that black and white have been stripped away, and minor colors introduced
 through antialiasing are not present.
 
 Changelog
-=========
+---------
 
 devel
 ~~~~~
