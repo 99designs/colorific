@@ -21,7 +21,7 @@ if version != (2, 7):
 import os
 from setuptools import setup
 
-readme = os.path.join(os.path.dirname(__file__), 'README.md')
+readme = os.path.join(os.path.dirname(__file__), 'README.rst')
 
 setup(
     name='colorific',
