@@ -216,11 +216,19 @@ def save_palette_as_image(filename, palette):
     im = Im.new('RGB', size)
     draw = ImageDraw.Draw(im)
     for i, c in enumerate(palette.colors):
+        v = colorsys.rgb_to_hsv(*norm_color(c.value))[2]
         (x1, y1) = (i * 80, 0)
         (x2, y2) = ((i + 1) * 80 - 1, 79)
         draw.rectangle([(x1, y1), (x2, y2)], fill=c.value)
-        draw.text((x1 + 4, y1 + 4), rgb_to_hex(c.value), (90, 90, 90))
-        draw.text((x1 + 3, y1 + 3), rgb_to_hex(c.value))
+        if v < 0.6:
+            # white with shadow
+            draw.text((x1 + 4, y1 + 4), rgb_to_hex(c.value), (90, 90, 90))
+            draw.text((x1 + 3, y1 + 3), rgb_to_hex(c.value))
+        else:
+            # dark with bright "shadow"
+            draw.text((x1 + 4, y1 + 4), rgb_to_hex(c.value), (230, 230, 230))
+            draw.text((x1 + 3, y1 + 3), rgb_to_hex(c.value), (0, 0, 0))
+
     im.save(output_filename, "PNG")
 
 def meets_min_saturation(c, threshold):
