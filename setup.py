@@ -13,8 +13,8 @@ import sys
 # check for the supported Python version
 version = tuple(sys.version_info[:2])
 if version != (2, 7):
-    sys.stderr.write('colorific requires Python 2.7 (you have %d.%d)\n' %
-            version)
+    sys.stderr.write(
+        'colorific requires Python 2.7 (you have %d.%d)\n' % version)
     sys.stderr.flush()
     sys.exit(1)
 
@@ -33,14 +33,14 @@ setup(
     url='http://github.com/99designs/colorific',
     py_modules=['colorific'],
     install_requires=[
-            'Pillow==1.7.8',
-            'colormath>=1.0.8',
-            'numpy>=1.6.1',
-        ],
+        'Pillow>=1.7.8',
+        'colormath>=1.0.8',
+        'numpy>=1.6.1',
+    ],
     license='ISC',
     entry_points={
         'console_scripts': [
-                'colorific = colorific:main',
-            ],
-        },
+            'colorific = colorific:main',
+        ],
+    },
 )
