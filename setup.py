@@ -24,10 +24,11 @@ from setuptools import setup
 PROJECT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__)))
 README_FILE_PATH = os.path.join(PROJECT_DIR, 'README.rst')
 REQUIREMENTS_FILE_PATH = os.path.join(PROJECT_DIR, 'requirements.pip')
+VERSION = __import__('colorific').get_version()
 
 setup(
     name='colorific',
-    version='0.2.1',
+    version=VERSION,
     description='Automatic color palette detection',
     long_description=file(README_FILE_PATH).read(),
     author='Lars Yencken',
