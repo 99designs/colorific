@@ -1,3 +1,0 @@
-colormath>=1.0.8
-numpy>=1.6.1
-https://github.com/larsyencken/Pillow/tarball/master
