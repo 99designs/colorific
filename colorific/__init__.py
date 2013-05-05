@@ -1,3 +1,4 @@
+# define version
 __version_info__ = {
     'major': 0,
     'minor': 2,
@@ -19,3 +20,7 @@ def get_version():
     return ''.join(vers)
 
 __version__ = get_version()
+
+# import palette modules for backward compatilibity
+from .palette import *
+from .config import *
