@@ -8,36 +8,19 @@
 """
 Detect the main colors used in an image.
 """
-
-import sys
-import optparse
-from collections import Counter, namedtuple
-from operator import itemgetter, mul, attrgetter
-import multiprocessing
 import colorsys
-
-from PIL import Image as Im
-from PIL import ImageChops, ImageDraw
+import multiprocessing
+import sys
+from PIL import Image, ImageChops, ImageDraw
+from collections import Counter, namedtuple
 from colormath.color_objects import RGBColor
+from operator import itemgetter, mul, attrgetter
+
+from colorific import config
+
 
 Color = namedtuple('Color', ['value', 'prominence'])
 Palette = namedtuple('Palette', 'colors bgcolor')
-
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-
-# algorithm tuning
-N_QUANTIZED = 100       # start with an adaptive palette of this size
-MIN_DISTANCE = 10.0     # min distance to consider two colors different
-MIN_PROMINENCE = 0.01   # ignore if less than this proportion of image
-MIN_SATURATION = 0.05   # ignore if not saturated enough
-MAX_COLORS = 5          # keep only this many colors
-BACKGROUND_PROMINENCE = 0.5     # level of prominence indicating a bg color
-
-# multiprocessing parameters
-BLOCK_SIZE = 10
-N_PROCESSES = 1
-SENTINEL = 'no more to process'
 
 
 def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
@@ -48,6 +31,7 @@ def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
         filename = line.strip()
         try:
             palette = extract_colors(filename, **kwargs)
+
         except Exception, e:
             print >> sys.stderr, filename, e
             continue
@@ -57,7 +41,7 @@ def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
             save_palette_as_image(filename, palette)
 
 
-def color_stream_mt(istream=sys.stdin, n=N_PROCESSES, **kwargs):
+def color_stream_mt(istream=sys.stdin, n=config.N_PROCESSES, **kwargs):
     """
     Read filenames from the input stream and detect their palette using
     multiple processes.
@@ -73,14 +57,14 @@ def color_stream_mt(istream=sys.stdin, n=N_PROCESSES, **kwargs):
     block = []
     for line in istream:
         block.append(line.strip())
-        if len(block) == BLOCK_SIZE:
+        if len(block) == config.BLOCK_SIZE:
             queue.put(block)
             block = []
     if block:
         queue.put(block)
 
     for i in xrange(n):
-        queue.put(SENTINEL)
+        queue.put(config.SENTINEL)
 
     for p in pool:
         p.join()
@@ -90,7 +74,7 @@ def color_process(queue, lock):
     "Receive filenames and get the colors from their images."
     while True:
         block = queue.get()
-        if block == SENTINEL:
+        if block == config.SENTINEL:
             break
 
         for filename in block:
@@ -122,30 +106,30 @@ def hex_to_rgb(color):
 
 
 def extract_colors(
-        filename_or_img, min_saturation=MIN_SATURATION,
-        min_distance=MIN_DISTANCE, max_colors=MAX_COLORS,
-        min_prominence=MIN_PROMINENCE, n_quantized=N_QUANTIZED):
+        filename_or_img, min_saturation=config.MIN_SATURATION,
+        min_distance=config.MIN_DISTANCE, max_colors=config.MAX_COLORS,
+        min_prominence=config.MIN_PROMINENCE, n_quantized=config.N_QUANTIZED):
     """
     Determine what the major colors are in the given image.
     """
-    if Im.isImageType(filename_or_img):
+    if Image.isImageType(filename_or_img):
         im = filename_or_img
     else:
-        im = Im.open(filename_or_img)
+        im = Image.open(filename_or_img)
 
     # get point color count
     if im.mode != 'RGB':
         im = im.convert('RGB')
-    im = autocrop(im, WHITE)  # assume white box
+    im = autocrop(im, config.WHITE)  # assume white box
     im = im.convert(
-        'P', palette=Im.ADAPTIVE, colors=n_quantized).convert('RGB')
+        'P', palette=Image.ADAPTIVE, colors=n_quantized).convert('RGB')
     data = im.getdata()
     dist = Counter(data)
     n_pixels = mul(*im.size)
 
     # aggregate colors
-    to_canonical = {WHITE: WHITE, BLACK: BLACK}
-    aggregated = Counter({WHITE: 0, BLACK: 0})
+    to_canonical = {config.WHITE: config.WHITE, config.BLACK: config.BLACK}
+    aggregated = Counter({config.WHITE: 0, config.BLACK: 0})
     sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
     for c, n in sorted_cols:
         if c in aggregated:
@@ -201,7 +185,7 @@ def norm_color(c):
 
 def detect_background(im, colors, to_canonical):
     # more then half the image means background
-    if colors[0].prominence >= BACKGROUND_PROMINENCE:
+    if colors[0].prominence >= config.BACKGROUND_PROMINENCE:
         return colors[1:], colors[0]
 
     # work out the background color
@@ -236,7 +220,7 @@ def save_palette_as_image(filename, palette):
     "Save palette as a PNG with labeled, colored blocks"
     output_filename = '%s_palette.png' % filename[:filename.rfind('.')]
     size = (80 * len(palette.colors), 80)
-    im = Im.new('RGB', size)
+    im = Image.new('RGB', size)
     draw = ImageDraw.Draw(im)
     for i, c in enumerate(palette.colors):
         v = colorsys.rgb_to_hsv(*norm_color(c.value))[2]
@@ -263,116 +247,10 @@ def autocrop(im, bgcolor):
     "Crop away a border of the given background color."
     if im.mode != "RGB":
         im = im.convert("RGB")
-    bg = Im.new("RGB", im.size, bgcolor)
+    bg = Image.new("RGB", im.size, bgcolor)
     diff = ImageChops.difference(im, bg)
     bbox = diff.getbbox()
     if bbox:
         return im.crop(bbox)
 
     return im  # no contents, don't crop to nothing
-
-
-def _create_option_parser():
-
-    usage = '\n'.join([
-        "%prog [options]",
-        "",
-        "Reads a stream of image filenames from stdin, and outputs a single ",
-        "line for each containing hex color values."])
-    parser = optparse.OptionParser(usage)
-    parser.add_option(
-        '-p',
-        '--parallel',
-        action='store',
-        dest='n_processes',
-        type='int',
-        default=N_PROCESSES)
-    parser.add_option(
-        '--min-saturation',
-        action='store',
-        dest='min_saturation',
-        default=MIN_SATURATION,
-        type='float',
-        help="Only keep colors which meet this saturation "
-             "[%.02f]" % MIN_SATURATION)
-    parser.add_option(
-        '--max-colors',
-        action='store',
-        dest='max_colors',
-        type='int',
-        default=MAX_COLORS,
-        help="The maximum number of colors to output per palette "
-             "[%d]" % MAX_COLORS)
-    parser.add_option(
-        '--min-distance',
-        action='store',
-        dest='min_distance',
-        type='float',
-        default=MIN_DISTANCE,
-        help="The minimum distance colors must have to stay separate "
-             "[%.02f]" % MIN_DISTANCE)
-    parser.add_option(
-        '--min-prominence',
-        action='store',
-        dest='min_prominence',
-        type='float',
-        default=MIN_PROMINENCE,
-        help="The minimum proportion of pixels needed to keep a color "
-             "[%.02f]" % MIN_PROMINENCE)
-    parser.add_option(
-        '--n-quantized',
-        action='store',
-        dest='n_quantized',
-        type='int',
-        default=N_QUANTIZED,
-        help="Speed up by reducing the number in the quantizing step "
-             "[%d]" % N_QUANTIZED)
-    parser.add_option(
-        '-o',
-        action='store_true',
-        dest='save_palette',
-        default=False,
-        help="Output the palette as an image file")
-
-    return parser
-
-
-def main():
-    argv = sys.argv[1:]
-    parser = _create_option_parser()
-    (options, args) = parser.parse_args(argv)
-
-    if args:
-        # image filenames were provided as arguments
-        for filename in args:
-            try:
-                palette = extract_colors(
-                    filename,
-                    min_saturation=options.min_saturation,
-                    min_prominence=options.min_prominence,
-                    min_distance=options.min_distance,
-                    max_colors=options.max_colors,
-                    n_quantized=options.n_quantized)
-            except Exception, e:  # TODO: it's too broad exception.
-                print >> sys.stderr, filename, e
-                continue
-            print_colors(filename, palette)
-            if options.save_palette:
-                save_palette_as_image(filename, palette)
-        sys.exit(1)
-
-    if options.n_processes > 1:
-        # XXX add all the knobs we can tune
-        color_stream_mt(n=options.n_processes)
-    else:
-        color_stream_st(
-            min_saturation=options.min_saturation,
-            min_prominence=options.min_prominence,
-            min_distance=options.min_distance,
-            max_colors=options.max_colors,
-            n_quantized=options.n_quantized,
-            save_palette=options.save_palette
-        )
-
-if __name__ == '__main__':
-    main()

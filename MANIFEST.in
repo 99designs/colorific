@@ -1,1 +1,4 @@
-include README.md
+recursive-include colorific *.py
+include README.rst
+include LICENSE.txt
+include requirements.pip
