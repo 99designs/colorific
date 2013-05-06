@@ -21,6 +21,11 @@ def get_version():
 
 __version__ = get_version()
 
-# import palette modules for backward compatilibity
-from .palette import *
-from .config import *
+# import palette modules for backward compatilibity.
+try:
+    from .palette import *
+    from .config import *
+
+except ImportError:
+    # you should install requirements, see requirements.pip file.
+    pass
