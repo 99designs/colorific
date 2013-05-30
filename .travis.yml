@@ -6,3 +6,6 @@ python:
   - "3.3"
 install: "pip install -r requirements.pip --use-mirrors"
 script: nosetests
+notifications:
+    email:
+        - lars@yencken.org
