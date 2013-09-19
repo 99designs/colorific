@@ -36,7 +36,14 @@ For a small amount of images, colorific can also be invoked with the image file 
     $ colorific myimage.png
     myimage.png #3e453f,#2ea3b7,#bee6ea,#51544c,#373d38 #ffffff
 
-You can use an experimental multiprocessing mode with the `-n` argument. For example, to run the same example using 8 processes::
+You can also get a rendered palette with hex codes for each image with the ``-o`` argument::
+
+    $ colorific -o myimage.png
+    myimage.png #3e453f,#2ea3b7,#bee6ea,#51544c,#373d38 #ffffff
+    $ ls
+    myimage.png  myimage_palette.png
+
+You can use an experimental multiprocessing mode with the ``-n`` argument. For example, to run the same example using 8 processes::
 
     $ find . -name '*.jpg' | colorific -p 8
 
