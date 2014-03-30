@@ -39,4 +39,5 @@ setup(
     zip_safe=False,
     install_requires=[i.strip() for i in file(REQUIREMENTS_PATH).readlines()],
     entry_points={'console_scripts': ['colorific = colorific.script:main']},
+    test_suite='tests',
 )

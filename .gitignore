@@ -6,3 +6,7 @@ dist
 build
 *.swp
 env
+htmlcov
+*.egg
+.coverage
+.tox
