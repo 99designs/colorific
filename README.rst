@@ -84,6 +84,7 @@ devel
 ~~~~~
 
 - Use the recent 1.7.8 Pillow release instead of the master branch
+- Pin the colormath to 1.0.9 or earlier, given API changes in newer code
 
 0.2.1
 ~~~~~

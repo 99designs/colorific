@@ -37,7 +37,11 @@ setup(
     license='ISC',
     packages=find_packages(),
     zip_safe=False,
-    install_requires=[i.strip() for i in file(REQUIREMENTS_PATH).readlines()],
+    install_requires=[
+        'Pillow>=1.7.8',
+        'colormath>=1.0.8,<=1.0.9',
+        'numpy>=1.6.1',
+    ],
     entry_points={'console_scripts': ['colorific = colorific.script:main']},
     test_suite='tests',
 )
