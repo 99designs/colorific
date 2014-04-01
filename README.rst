@@ -1,6 +1,15 @@
 colorific
 =========
 
+.. image:: https://badge.fury.io/py/colorific.png
+    :target: http://badge.fury.io/py/colorific
+
+.. image:: https://travis-ci.org/99designs/colorific.png?branch=master
+        :target: https://travis-ci.org/99designs/colorific
+
+.. image:: https://pypip.in/d/colorific/badge.png
+        :target: https://crate.io/packages/colorific?version=latest
+
 Image palette detection in Python modelled after Paul Annesley's color detector
 in PHP. colorific determines what the most important colors used in your image
 are, and if one of them is a background color.
