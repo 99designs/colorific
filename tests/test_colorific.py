@@ -4,10 +4,12 @@
 #  palette-detect
 #
 
+import os
 import unittest
 import itertools
 
 import colorific
+from colorific import palette
 
 CORE_COLORS = [
     '#000000',  # black
@@ -16,6 +18,22 @@ CORE_COLORS = [
     '#ff0000',  # red
     '#ffffff',  # white
 ]
+
+
+class ExtractionTest(unittest.TestCase):
+    def setUp(self):
+        self.filename = os.path.join(os.path.dirname(__file__),
+                                     'nasa_ares_logo.png')
+
+    def test_extraction(self):
+        expected = [(0, 101, 185),
+                    (187, 214, 236),
+                    (255, 0, 0),
+                    (45, 68, 86),
+                    (119, 173, 218)]
+        p = palette.extract_colors(self.filename)
+        found = [c.value for c in p.colors]
+        self.assertEquals(found, expected)
 
 
 class ConversionTest(unittest.TestCase):
@@ -66,6 +84,7 @@ class VisualDistanceTest(unittest.TestCase):
 
 def suite():
     return unittest.TestSuite((
+        unittest.makeSuite(ExtractionTest),
         unittest.makeSuite(ConversionTest),
         unittest.makeSuite(VisualDistanceTest),
     ))
