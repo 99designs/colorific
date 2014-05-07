@@ -80,7 +80,7 @@ through antialiasing are not present.
 Changelog
 ---------
 
-devel
+0.2.2
 ~~~~~
 
 - Use the recent 1.7.8 Pillow release instead of the master branch
