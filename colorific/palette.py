@@ -37,8 +37,8 @@ def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
         try:
             palette = extract_colors(filename, **kwargs)
 
-        except Exception, e:
-            print >> sys.stderr, filename, e
+        except Exception as e:
+            print(filename, e, file=sys.stderr)
             continue
 
         print_colors(filename, palette)
@@ -55,7 +55,7 @@ def color_stream_mt(istream=sys.stdin, n=config.N_PROCESSES, **kwargs):
     lock = multiprocessing.Lock()
 
     pool = [multiprocessing.Process(target=color_process, args=(queue, lock),
-            kwargs=kwargs) for i in xrange(n)]
+            kwargs=kwargs) for i in range(n)]
     for p in pool:
         p.start()
 
@@ -68,7 +68,7 @@ def color_stream_mt(istream=sys.stdin, n=config.N_PROCESSES, **kwargs):
     if block:
         queue.put(block)
 
-    for i in xrange(n):
+    for i in range(n):
         queue.put(config.SENTINEL)
 
     for p in pool:

@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+#  script.py
+#  colorific
+#
+
 import sys
 import optparse
 
@@ -90,7 +96,7 @@ class Application(object):
                         max_colors=options.max_colors,
                         n_quantized=options.n_quantized)
 
-                except Exception, e:  # TODO: it's too broad exception.
+                except Exception as e:  # TODO: it's too broad exception.
                     print >> sys.stderr, filename, e
                     continue
 
