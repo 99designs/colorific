@@ -16,9 +16,13 @@ help:
 	@echo "sdist          package"
 	@echo
 
-env: requirements.pip
-	test -d env || virtualenv env
-	env/bin/pip install -r requirements.pip
+ENV = /tmp/virtualenv/colorific
+PY = $(ENV)/bin/python
+PIP = $(ENV)/bin/pip
+
+env:
+	test -d env || virtualenv $(ENV)
+	$(PY) setup.py develop
 
 clean: clean-build clean-pyc
 	rm -fr htmlcov/
@@ -33,35 +37,37 @@ clean-pyc:
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
 
-env/bin/flake8: env
-	env/bin/pip install flake8
+$(ENV)/bin/flake8: env
+	$(PIP) install flake8
 
-lint: env/bin/flake8
-	env/bin/flake8 colorific tests
+lint: $(ENV)/bin/flake8
+	$(ENV)/bin/flake8 colorific tests
 
 test: env
-	env/bin/python setup.py test
+	$(PY) setup.py test
 
-env/bin/tox: env
-	env/bin/pip install tox
+$(ENV)/bin/tox: env
+	$(ENV)/bin/pip install tox
 
-test-all: env/bin/tox
-	env/bin/tox
+test-all: $(ENV)/bin/tox
+	$(ENV)/bin/tox
 
-env/bin/coverage: env
-	env/bin/pip install coverage
+$(ENV)/bin/coverage: env
+	$(ENV)/bin/pip install coverage
 
-coverage: env/bin/coverage
-	env/bin/coverage run --source colorific setup.py test
-	env/bin/coverage report -m
-	env/bin/coverage html
+coverage: $(ENV)/bin/coverage
+	$(ENV)/bin/coverage run --source colorific setup.py test
+	$(ENV)/bin/coverage report -m
+	$(ENV)/bin/coverage html
 	open htmlcov/index.html
 
 release: clean
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+	$(PY) setup.py sdist upload
+	$(PY) setup.py bdist_wheel upload
 
 dist: clean
-	python setup.py sdist
-	python setup.py bdist_wheel
+	$(PY) setup.py sdist
+	$(PY) setup.py bdist_wheel
 	ls -l dist
+
+.PHONY: env test coverage release dist clean clean-build clean-pyc
