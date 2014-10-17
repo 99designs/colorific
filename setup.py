@@ -44,4 +44,14 @@ setup(
     ],
     entry_points={'console_scripts': ['colorific = colorific.script:main']},
     test_suite='tests',
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Intended Audience :: Developers',
+        'Intended Audience :: Science/Research',
+        'License :: OSI Approved :: ISC License (ISCL)',
+        'Natural Language :: English',
+        "Programming Language :: Python :: 2",
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+    ],
 )
