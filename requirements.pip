@@ -1,3 +1,4 @@
-Pillow==1.7.8
-colormath==1.0.9
-numpy==1.6.1
+Pillow==2.6.1
+colormath==2.0.2
+numpy==1.9.0
+wheel==0.24.0

@@ -8,12 +8,17 @@
 """
 Detect the main colors used in an image.
 """
+
+from __future__ import print_function
+
 import colorsys
 import multiprocessing
 import sys
 from PIL import Image, ImageChops, ImageDraw
 from collections import Counter, namedtuple
-from colormath.color_objects import RGBColor
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_diff import delta_e_cmc
+from colormath.color_conversions import convert_color
 from operator import itemgetter, mul, attrgetter
 
 from colorific import config
@@ -93,7 +98,10 @@ def distance(c1, c2):
     """
     Calculate the visual distance between the two colors.
     """
-    return RGBColor(*c1).delta_e(RGBColor(*c2), method='cmc')
+    return delta_e_cmc(
+        convert_color(sRGBColor(*c1, is_upscaled=True), LabColor),
+        convert_color(sRGBColor(*c2, is_upscaled=True), LabColor)
+    )
 
 
 def rgb_to_hex(color):
