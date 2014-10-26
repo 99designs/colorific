@@ -28,9 +28,7 @@ class ExtractionTest(unittest.TestCase):
     def test_extraction(self):
         expected = [(0, 101, 185),
                     (187, 214, 236),
-                    (255, 0, 0),
-                    (45, 68, 86),
-                    (119, 173, 218)]
+                    (255, 0, 0)]
         p = palette.extract_colors(self.filename)
         found = [c.value for c in p.colors]
         self.assertEquals(found, expected)

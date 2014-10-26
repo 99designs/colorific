@@ -8,12 +8,17 @@
 """
 Detect the main colors used in an image.
 """
+
+from __future__ import print_function
+
 import colorsys
 import multiprocessing
 import sys
 from PIL import Image, ImageChops, ImageDraw
 from collections import Counter, namedtuple
-from colormath.color_objects import RGBColor
+from colormath.color_objects import sRGBColor, LabColor
+from colormath.color_diff import delta_e_cmc
+from colormath.color_conversions import convert_color
 from operator import itemgetter, mul, attrgetter
 
 from colorific import config
@@ -32,8 +37,8 @@ def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
         try:
             palette = extract_colors(filename, **kwargs)
 
-        except Exception, e:
-            print >> sys.stderr, filename, e
+        except Exception as e:
+            print(filename, e, file=sys.stderr)
             continue
 
         print_colors(filename, palette)
@@ -50,7 +55,7 @@ def color_stream_mt(istream=sys.stdin, n=config.N_PROCESSES, **kwargs):
     lock = multiprocessing.Lock()
 
     pool = [multiprocessing.Process(target=color_process, args=(queue, lock),
-            kwargs=kwargs) for i in xrange(n)]
+            kwargs=kwargs) for i in range(n)]
     for p in pool:
         p.start()
 
@@ -63,7 +68,7 @@ def color_stream_mt(istream=sys.stdin, n=config.N_PROCESSES, **kwargs):
     if block:
         queue.put(block)
 
-    for i in xrange(n):
+    for i in range(n):
         queue.put(config.SENTINEL)
 
     for p in pool:
@@ -93,7 +98,10 @@ def distance(c1, c2):
     """
     Calculate the visual distance between the two colors.
     """
-    return RGBColor(*c1).delta_e(RGBColor(*c2), method='cmc')
+    return delta_e_cmc(
+        convert_color(sRGBColor(*c1, is_upscaled=True), LabColor),
+        convert_color(sRGBColor(*c2, is_upscaled=True), LabColor)
+    )
 
 
 def rgb_to_hex(color):
@@ -130,7 +138,7 @@ def extract_colors(
     # aggregate colors
     to_canonical = {config.WHITE: config.WHITE, config.BLACK: config.BLACK}
     aggregated = Counter({config.WHITE: 0, config.BLACK: 0})
-    sorted_cols = sorted(dist.iteritems(), key=itemgetter(1), reverse=True)
+    sorted_cols = sorted(dist.items(), key=itemgetter(1), reverse=True)
     for c, n in sorted_cols:
         if c in aggregated:
             # exact match!
@@ -148,7 +156,7 @@ def extract_colors(
 
     # order by prominence
     colors = sorted(
-        [Color(c, n / float(n_pixels)) for c, n in aggregated.iteritems()],
+        [Color(c, n / float(n_pixels)) for c, n in aggregated.items()],
         key=attrgetter('prominence'), reverse=True)
 
     colors, bg_color = detect_background(im, colors, to_canonical)
