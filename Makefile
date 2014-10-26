@@ -21,7 +21,7 @@ PY = $(ENV)/bin/python
 PIP = $(ENV)/bin/pip
 
 env:
-	test -d env || virtualenv $(ENV)
+	test -d $(ENV) || virtualenv $(ENV)
 	$(PY) setup.py develop
 
 clean: clean-build clean-pyc
