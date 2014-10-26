@@ -80,6 +80,12 @@ through antialiasing are not present.
 Changelog
 ---------
 
+0.3.0
+~~~~~
+
+- Python 3 support
+- Bump colormath version to 2.0.2
+
 0.2.2
 ~~~~~
 
