@@ -28,6 +28,11 @@ from colorific import config
 Color = namedtuple('Color', ['value', 'prominence'])
 Palette = namedtuple('Palette', 'colors bgcolor')
 
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
+
 
 def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
     """
@@ -95,14 +100,16 @@ def color_process(queue, lock):
                 lock.release()
 
 
+@lru_cache()
+def convert_sRGB(c):
+    return convert_color(sRGBColor(*c, is_upscaled=True), LabColor)
+
+
 def distance(c1, c2):
     """
     Calculate the visual distance between the two colors.
     """
-    return delta_e_cmc(
-        convert_color(sRGBColor(*c1, is_upscaled=True), LabColor),
-        convert_color(sRGBColor(*c2, is_upscaled=True), LabColor)
-    )
+    return delta_e_cmc(convert_sRGB(c1), convert_sRGB(c2))
 
 
 def rgb_to_hex(color):
