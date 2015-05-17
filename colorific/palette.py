@@ -14,12 +14,13 @@ from __future__ import print_function
 import colorsys
 import multiprocessing
 import sys
-from PIL import Image, ImageChops, ImageDraw
 from collections import Counter, namedtuple
-from colormath.color_objects import sRGBColor, LabColor
-from colormath.color_diff import delta_e_cmc
-from colormath.color_conversions import convert_color
 from operator import itemgetter, mul, attrgetter
+
+from PIL import Image, ImageChops, ImageDraw
+from colormath.color_conversions import convert_color
+from colormath.color_diff import delta_e_cmc
+from colormath.color_objects import sRGBColor, LabColor
 
 from colorific import config
 
@@ -131,8 +132,8 @@ def extract_colors(
     im = autocrop(im, config.WHITE)  # assume white box
     im = im.convert(
         'P', palette=Image.ADAPTIVE, colors=n_quantized).convert('RGB')
-    data = im.getdata()
-    dist = Counter(data)
+    dist = Counter({color: count for count, color
+                    in im.getcolors(n_quantized)})
     n_pixels = mul(*im.size)
 
     # aggregate colors
