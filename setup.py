@@ -9,6 +9,7 @@ Package information for colorific.
 """
 
 import os.path
+import platform
 
 try:
     from setuptools import setup
@@ -17,8 +18,17 @@ except ImportError:
 
 PROJECT_DIR = os.path.realpath(os.path.join(os.path.dirname(__file__)))
 README_PATH = os.path.join(PROJECT_DIR, 'README.rst')
-REQUIREMENTS_PATH = os.path.join(PROJECT_DIR, 'requirements.pip')
+REQUIREMENTS_PATH = os.path.join(PROJECT_DIR, 'requirements_py{0}.pip'
+                                 .format(platform.python_version_tuple()[0]))
 VERSION = __import__('colorific').get_version()
+
+install_requires = [
+    'Pillow>=2.6.1',
+    'colormath>=2.0.2',
+    'numpy>=1.9.0',
+]
+if platform.python_version_tuple() < ('3', '2'):
+    install_requires.append('backports.functools_lru_cache>=1.0.1')
 
 setup(
     name='colorific',
@@ -31,11 +41,7 @@ setup(
     license='ISC',
     packages=['colorific'],
     zip_safe=False,
-    install_requires=[
-        'Pillow>=2.6.1',
-        'colormath>=2.0.2',
-        'numpy>=1.9.0',
-    ],
+    install_requires=install_requires,
     entry_points={'console_scripts': ['colorific = colorific.script:main']},
     test_suite='tests',
     classifiers=[

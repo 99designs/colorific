@@ -14,18 +14,24 @@ from __future__ import print_function
 import colorsys
 import multiprocessing
 import sys
-from PIL import Image, ImageChops, ImageDraw
 from collections import Counter, namedtuple
-from colormath.color_objects import sRGBColor, LabColor
-from colormath.color_diff import delta_e_cmc
-from colormath.color_conversions import convert_color
 from operator import itemgetter, mul, attrgetter
+
+from PIL import Image, ImageChops, ImageDraw
+from colormath.color_conversions import convert_color
+from colormath.color_diff import delta_e_cmc
+from colormath.color_objects import sRGBColor, LabColor
 
 from colorific import config
 
 
 Color = namedtuple('Color', ['value', 'prominence'])
 Palette = namedtuple('Palette', 'colors bgcolor')
+
+try:
+    from functools import lru_cache
+except ImportError:
+    from backports.functools_lru_cache import lru_cache
 
 
 def color_stream_st(istream=sys.stdin, save_palette=False, **kwargs):
@@ -94,14 +100,16 @@ def color_process(queue, lock):
                 lock.release()
 
 
+@lru_cache()
+def convert_sRGB(c):
+    return convert_color(sRGBColor(*c, is_upscaled=True), LabColor)
+
+
 def distance(c1, c2):
     """
     Calculate the visual distance between the two colors.
     """
-    return delta_e_cmc(
-        convert_color(sRGBColor(*c1, is_upscaled=True), LabColor),
-        convert_color(sRGBColor(*c2, is_upscaled=True), LabColor)
-    )
+    return delta_e_cmc(convert_sRGB(c1), convert_sRGB(c2))
 
 
 def rgb_to_hex(color):
@@ -131,8 +139,8 @@ def extract_colors(
     im = autocrop(im, config.WHITE)  # assume white box
     im = im.convert(
         'P', palette=Image.ADAPTIVE, colors=n_quantized).convert('RGB')
-    data = im.getdata()
-    dist = Counter(data)
+    dist = Counter({color: count for count, color
+                    in im.getcolors(n_quantized)})
     n_pixels = mul(*im.size)
 
     # aggregate colors
