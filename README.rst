@@ -52,7 +52,7 @@ You can also get a rendered palette with hex codes for each image with the ``-o`
     $ ls
     myimage.png  myimage_palette.png
 
-You can use an experimental multiprocessing mode with the ``-n`` argument. For example, to run the same example using 8 processes::
+You can use an experimental multiprocessing mode with the ``-p`` argument. For example, to run the same example using 8 processes::
 
     $ find . -name '*.jpg' | colorific -p 8
 
